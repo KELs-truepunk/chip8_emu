@@ -31,7 +31,7 @@ void chip8_init(Chip8* chip8){
     memset(chip8->memory, 0, MEMORY_SIZE);
     fontset_to_mem(chip8->memory);
 
-    memset(chip8->I, 0, REGISTER_COUNT); 
+    memset(chip8->V, 0, REGISTER_COUNT); 
 }
 
 bool chip8_load_rom(Chip8* chip8, const char *filename){

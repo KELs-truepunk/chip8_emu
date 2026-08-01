@@ -37,7 +37,7 @@ Original CHIP-8 hex keypad mapped to standard QWERTY keyboard layout:
 
 ```bash
 # Clone the repository
-git clone [https://github.com/your-username/chip8_emu.git](https://github.com/your-username/chip8_emu.git)
+git clone [https://github.com/KELs-truepunk/chip8_emu.git](https://github.com/KELs-truepunk/chip8_emu.git)
 cd chip8_emu
 
 # Create build directory and compile

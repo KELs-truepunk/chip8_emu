@@ -2,15 +2,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-typedef struct decode_nibble
-{
-    uint8_t op;
-    uint8_t x;
-    uint8_t y;
-    uint8_t n;
-    uint8_t kk;
-    uint16_t nnn;
-} decode_nibble;
 
 // размер файла в байтах
 long get_file_size(FILE *file)

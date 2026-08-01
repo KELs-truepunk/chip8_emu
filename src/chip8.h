@@ -27,6 +27,17 @@ typedef struct {
     uint32_t gfx[SCREEN_WIDTH * SCREEN_HEIGHT]; // Пиксели экрана (ARGB)
 } Chip8;
 
+typedef struct decode_nibble
+{
+    uint8_t op;
+    uint8_t x;
+    uint8_t y;
+    uint8_t n;
+    uint8_t kk;
+    uint16_t nnn;
+} decode_nibble;
+
+
 const uint8_t fontset[80] = {
     0xF0, 0x90, 0x90, 0x90, 0xF0, //0
     0x20, 0x60, 0x20, 0x20, 0x70, //1

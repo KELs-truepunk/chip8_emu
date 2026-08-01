@@ -88,8 +88,11 @@ void chip8_op_draw(Chip8 *chip8, decode_nibble *nib)
         {
             if ((sprite_byte & (0x80 >> col)))
             {
-                uint8_t x = (nib->x + col) % 64;
-                uint8_t y = (nib->y + row) % 32;
+                uint8_t vx = chip8->V[nib->x];
+                uint8_t vy = chip8->V[nib->y];
+
+                uint8_t x = (vx + col) % 64;
+                uint8_t y = (vy + row) % 32;
 
                 int index = x + (y * 64);
                 if (chip8->gfx[index] == 1) // Если пиксель на экране уже 1, регистрируем коллизию

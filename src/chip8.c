@@ -277,18 +277,18 @@ bool chip8_cycle(Chip8 *chip8)
         switch (nib.kk)
         {
         case 0x9E:
-            if (nib.x >= 0 && nib.x < 16)//проверяем правильная ли кнопка
+            if (nib.x >= 0 && nib.x < 16) // проверяем правильная ли кнопка
             {
-                if (chip8->keypad[chip8->V[nib.x]])//если кнопка под номером V[x] нажата,
-                    chip8->pc += 2; //то пропуск
+                if (chip8->keypad[chip8->V[nib.x]]) // если кнопка под номером V[x] нажата,
+                    chip8->pc += 2;                 // то пропуск
             }
             break;
 
         case 0xA1:
-            if (nib.x >= 0 && nib.x < 16)//проверяем правильная ли кнопка
+            if (nib.x >= 0 && nib.x < 16) // проверяем правильная ли кнопка
             {
-                if (!chip8->keypad[chip8->V[nib.x]])//если кнопка под номером V[x] не нажата,
-                    chip8->pc += 2;//то пропускаем
+                if (!chip8->keypad[chip8->V[nib.x]]) // если кнопка под номером V[x] не нажата,
+                    chip8->pc += 2;                  // то пропускаем
             }
             break;
 
@@ -296,8 +296,69 @@ bool chip8_cycle(Chip8 *chip8)
             break;
         }
         break;
-        
+
     case 0xF:
+        switch (nib.kk)
+        {
+        case 0x07: // Fx07 - LD Vx, DT
+            chip8->V[nib.x] = chip8->delay_timer; //в V[x] помещаем делей-таймер
+            break;
+
+        case 0x0A: // Fx0A - LD Vx, K
+            bool key_state = false;
+            // ищем нажатые клавиши
+            for (int i = 0; i < KEY_COUNT; i++)
+            {
+                if (chip8->keypad[i]) // если нашли
+                {
+                    chip8->V[nib.x] = i; // помещаем ее номер в регистр
+                    chip8->pc += 2;      // идем на следущею инструкцию
+                    key_state = true;    // возводим флаг
+                    break;
+                }
+            }
+            if (!key_state) // если не нажата выполняем эту же инструкцию заново
+                chip8->pc -= 2;
+            break;
+
+        case 0x15: // Fx15 - LD DT, Vx
+            chip8->delay_timer = chip8->V[nib.x]; //обновляем делей-таймер из регистра
+            break;
+
+        case 0x18: // Fx18 - LD ST, Vx
+            chip8->sound_timer = chip8->V[nib.x]; //обновляем саунд-таймер из регистра
+            break;
+
+        case 0x1E: // Fx1E - ADD I, Vx
+            chip8->I += chip8->V[nib.x];
+            break;
+
+        case 0x29: //  Fx29 - LD F, Vx
+            chip8->I = 0x050 + (chip8->V[nib.x * 5]);
+            break;
+
+        case 0x33: //  Fx33 - LD B, Vx
+            //раскаладываем что лежит в регистре по 100, 10 и единицам
+            chip8->memory[chip8->I] = chip8->V[nib.x] / 100;
+            chip8->memory[chip8->I + 1] = (chip8->V[nib.x] / 10) % 10;
+            chip8->memory[chip8->I + 2] = chip8->V[nib.x] % 10;
+            break;
+
+        case 0x55: // Fx55 - LD [I], Vx
+            for (int i = 0; i <= nib.x; i++)
+            {
+                chip8->memory[chip8->I + i] = chip8->V[i];
+            }
+            break;
+
+        case 0x65: // Fx65 - LD Vx, [I]
+            for (int i = 0; i <= nib.x; i++)
+            {
+                chip8->V[i] = chip8->memory[chip8->I + i];
+            }
+        default:
+            break;
+        }
         break;
     default:
         fprintf(stderr, "Unknown Opcode: 0x%04X\n", opcode);

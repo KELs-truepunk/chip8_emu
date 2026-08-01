@@ -44,3 +44,9 @@ cd chip8_emu
 mkdir build && cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
 make
+```
+---
+
+## 📜 License
+
+Distributed under the **BSD 3-Clause License**. See `LICENSE` for more information.

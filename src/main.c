@@ -11,6 +11,23 @@ static const SDL_Keycode KEYMAP[16] = {
 int window_scale = 15; // коэфицент размера окна, дефолтный 15, иначе берем из argv[2]
 const static char *window_title = "CHIP8 Emulator";
 
+// генерация писка
+void audio_callback(void *userdata, Uint8 *stream, int len)
+{
+    static int sample_index = 0;
+    int frequency = 440;     // частота звука в Гц (Ля)
+    int sample_rate = 44100; // частота дискретизации
+
+    Sint16 *buffer = (Sint16 *)stream;
+    int length = len / 2; // 16 битный звук (2 байта на семпл)
+
+    for (int i = 0; i < length; i++)
+    {
+        // чередуем амплитуду для создания квадратной волны. 3000 — умеренная громкость.
+        buffer[i] = ((sample_index++ * frequency / sample_rate) % 2) ? 3000 : -3000;
+    }
+}
+
 int main(int argc, char **argv)
 {
     Chip8 chip8;        // основная структура устройства
@@ -40,10 +57,26 @@ int main(int argc, char **argv)
     const char *filename = argv[1];   // файл с бинарником
     chip8_load_rom(&chip8, filename); // грузим его в ОЗУ
     // Инициалзация SDL2
-    if (SDL_Init(SDL_INIT_VIDEO) < 0)
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
     {
         fprintf(stderr, "SDL Init Error: %s\n", SDL_GetError());
         return -1;
+    }
+
+    // настройка аудиоустройства
+    SDL_AudioSpec desired_spec;
+    desired_spec.freq = 44100;
+    desired_spec.format = AUDIO_S16SYS;
+    desired_spec.channels = 1;
+    desired_spec.samples = 2048;
+    desired_spec.callback = audio_callback;
+    desired_spec.userdata = NULL;
+
+    SDL_AudioDeviceID audio_device = SDL_OpenAudioDevice(NULL, 0, &desired_spec, NULL, 0);
+    if (audio_device == 0)
+    {
+        fprintf(stderr, "SDL Audio Error: %s\n", SDL_GetError());
+        // Не выходим из программы, если звуковая карта занята — пусть игра идет без звука
     }
     // создаем окно с положением в центре, с заголовком, без флагов, разрешение 64 на 32
     SDL_Window *window = SDL_CreateWindow(
@@ -97,8 +130,24 @@ int main(int argc, char **argv)
         }
         if (chip8.sound_timer > 0)
         {
-            // будущем можно пищалку задействовать
             chip8.sound_timer--;
+        }
+
+        // логика звукового таймера CHIP-8
+        if (chip8.sound_timer > 0)
+        {
+            if (audio_device > 0)
+            {
+                SDL_PauseAudioDevice(audio_device, 0); // вкл звук
+            }
+            chip8.sound_timer--;
+        }
+        else
+        {
+            if (audio_device > 0)
+            {
+                SDL_PauseAudioDevice(audio_device, 1); // выкл звук
+            }
         }
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);       // ставим черный
         SDL_RenderClear(renderer);                            // чистим экран
@@ -123,6 +172,11 @@ int main(int argc, char **argv)
         // вывод картинки
         SDL_RenderPresent(renderer);
         SDL_Delay(16); //~60 FPS
+    }
+    //очистка
+    if (audio_device > 0)
+    {
+        SDL_CloseAudioDevice(audio_device);
     }
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);

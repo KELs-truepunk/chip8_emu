@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define MEMORY_SIZE 4096
+#define MEMORY_SIZE 4096 
 #define REGISTER_COUNT 16
 #define STACK_LEVELS 16
 #define KEY_COUNT 16
@@ -37,7 +37,7 @@ typedef struct decode_nibble
     uint16_t nnn;
 } decode_nibble;
 
-
+//Шрифт
 const uint8_t fontset[80] = {
     0xF0, 0x90, 0x90, 0x90, 0xF0, //0
     0x20, 0x60, 0x20, 0x20, 0x70, //1
@@ -56,6 +56,6 @@ const uint8_t fontset[80] = {
     0xF0, 0x80, 0xF0, 0x80, 0xF0, //E
     0xF0, 0x80, 0xF0, 0x80, 0x80  //F 
 };
-void chip8_init(Chip8* chip8);
-bool chip8_load_rom(Chip8* chip8, const char *filename);
-bool chip8_cycle(Chip8* chip8); 
+void chip8_init(Chip8* chip8); //Инициализация
+bool chip8_load_rom(Chip8* chip8, const char *filename); //Загрузка ROM в RAM
+bool chip8_cycle(Chip8* chip8); //Декодинг бинарника и выполнение 

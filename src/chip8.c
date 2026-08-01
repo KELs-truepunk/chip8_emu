@@ -10,7 +10,7 @@ long get_file_size(FILE *file)
     {
         fseek(file, 0, SEEK_END);     // переходим в конец файла
         long file_size = ftell(file); // узнаем, где находится указатель, чтобы понять какого размера файл
-        rewind(file);
+        rewind(file);                 //возращаемся назад
         return file_size;
     }
     else
@@ -20,34 +20,37 @@ long get_file_size(FILE *file)
     }
 }
 
-void fontset_to_mem(uint8_t *memory)
+int fontset_to_mem(uint8_t *memory)
 {
-    for (int i = 0; i < 80; i++)
-    {
-        memory[0x050 + i] = fontset[i];
-    }
+    if(!memory){return -1;}
+
+    memcpy(&memory[0x050], fontset, sizeof(fontset));
+    return 0;
 }
 
 void chip8_init(Chip8 *chip8)
 {
-    chip8->pc = 0x200; // код программы начинается именно с 0x200
+    chip8->pc = 0x200; // код программы начинается именно с 0x200, поэтому считчек не на ноль, до 0x200 находятся шрифты и тп.
     chip8->I = 0;
     chip8->sp = 0;
     chip8->delay_timer = 0;
     chip8->sound_timer = 0;
 
+    fontset_to_mem(chip8->memory); //копируем шрифт в начало памяти
+    //зануляем массивы
     memset(chip8->memory, 0, MEMORY_SIZE);
-    fontset_to_mem(chip8->memory);
-
     memset(chip8->V, 0, REGISTER_COUNT);
     memset(chip8->gfx, 0, sizeof(chip8->gfx));
     memset(chip8->stack, 0, sizeof(chip8->stack));
+    memset(chip8->keypad, 0, KEY_COUNT);
+
+    srand(time(NULL)); //получение сида для рандомного числа(используется в инструкции Cxkk)
 }
 
 bool chip8_load_rom(Chip8 *chip8, const char *filename)
 {
-    FILE *bin_file = fopen(filename, "rb");
-    long file_size = get_file_size(bin_file);
+    FILE *bin_file = fopen(filename, "rb");     //читаем именно в бинарном виде
+    long file_size = get_file_size(bin_file);   //получаем размер файла
 
     if (file_size > 0x1000 - 0x200)
     {
@@ -62,12 +65,12 @@ bool chip8_load_rom(Chip8 *chip8, const char *filename)
 
 void decode_opcode(uint16_t opcode, decode_nibble *nib_struct)
 {
-    nib_struct->op = (opcode & 0xF000) >> 12;
-    nib_struct->x = (opcode & 0x0F00) >> 8;
-    nib_struct->y = (opcode & 0x00F0) >> 4;
-    nib_struct->n = opcode & 0x000F;
-    nib_struct->kk = opcode & 0x00FF;
-    nib_struct->nnn = opcode & 0x0FFF;
+    nib_struct->op = (opcode & 0xF000) >> 12; //получаем 1 бит
+    nib_struct->x = (opcode & 0x0F00) >> 8;   //получаем 2 бит
+    nib_struct->y = (opcode & 0x00F0) >> 4;   //получаем 3 бит
+    nib_struct->n = opcode & 0x000F;           //получаем 4 бит
+    nib_struct->kk = opcode & 0x00FF;          //получаем последние 2 бита
+    nib_struct->nnn = opcode & 0x0FFF;          //получаем последние 3 бита
 }
 void chip8_op_draw(Chip8 *chip8, decode_nibble *nib)
 {

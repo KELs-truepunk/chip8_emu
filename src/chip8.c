@@ -10,7 +10,7 @@ long get_file_size(FILE *file)
     {
         fseek(file, 0, SEEK_END);     // переходим в конец файла
         long file_size = ftell(file); // узнаем, где находится указатель, чтобы понять какого размера файл
-        rewind(file);                 //возращаемся назад
+        rewind(file);                 // возращаемся назад
         return file_size;
     }
     else
@@ -22,7 +22,10 @@ long get_file_size(FILE *file)
 
 int fontset_to_mem(uint8_t *memory)
 {
-    if(!memory){return -1;}
+    if (!memory)
+    {
+        return -1;
+    }
 
     memcpy(&memory[0x050], fontset, sizeof(fontset));
     return 0;
@@ -36,21 +39,21 @@ void chip8_init(Chip8 *chip8)
     chip8->delay_timer = 0;
     chip8->sound_timer = 0;
 
-    fontset_to_mem(chip8->memory); //копируем шрифт в начало памяти
-    //зануляем массивы
+    fontset_to_mem(chip8->memory); // копируем шрифт в начало памяти
+    // зануляем массивы
     memset(chip8->memory, 0, MEMORY_SIZE);
     memset(chip8->V, 0, REGISTER_COUNT);
     memset(chip8->gfx, 0, sizeof(chip8->gfx));
     memset(chip8->stack, 0, sizeof(chip8->stack));
     memset(chip8->keypad, 0, KEY_COUNT);
 
-    srand(time(NULL)); //получение сида для рандомного числа(используется в инструкции Cxkk)
+    srand(time(NULL)); // получение сида для рандомного числа(используется в инструкции Cxkk)
 }
 
 bool chip8_load_rom(Chip8 *chip8, const char *filename)
 {
-    FILE *bin_file = fopen(filename, "rb");     //читаем именно в бинарном виде
-    long file_size = get_file_size(bin_file);   //получаем размер файла
+    FILE *bin_file = fopen(filename, "rb");   // читаем именно в бинарном виде
+    long file_size = get_file_size(bin_file); // получаем размер файла
 
     if (file_size > 0x1000 - 0x200)
     {
@@ -65,12 +68,12 @@ bool chip8_load_rom(Chip8 *chip8, const char *filename)
 
 void decode_opcode(uint16_t opcode, decode_nibble *nib_struct)
 {
-    nib_struct->op = (opcode & 0xF000) >> 12; //получаем 1 бит
-    nib_struct->x = (opcode & 0x0F00) >> 8;   //получаем 2 бит
-    nib_struct->y = (opcode & 0x00F0) >> 4;   //получаем 3 бит
-    nib_struct->n = opcode & 0x000F;           //получаем 4 бит
-    nib_struct->kk = opcode & 0x00FF;          //получаем последние 2 бита
-    nib_struct->nnn = opcode & 0x0FFF;          //получаем последние 3 бита
+    nib_struct->op = (opcode & 0xF000) >> 12; // получаем 1 бит
+    nib_struct->x = (opcode & 0x0F00) >> 8;   // получаем 2 бит
+    nib_struct->y = (opcode & 0x00F0) >> 4;   // получаем 3 бит
+    nib_struct->n = opcode & 0x000F;          // получаем 4 бит
+    nib_struct->kk = opcode & 0x00FF;         // получаем последние 2 бита
+    nib_struct->nnn = opcode & 0x0FFF;        // получаем последние 3 бита
 }
 void chip8_op_draw(Chip8 *chip8, decode_nibble *nib)
 {
@@ -266,12 +269,34 @@ bool chip8_cycle(Chip8 *chip8)
         chip8->V[nib.x] = rand_byte & nib.kk;
         break;
     }
-    case 0xD: //Dxyn - DRW Vx, Vy, nibble
+    case 0xD: // Dxyn - DRW Vx, Vy, nibble
         chip8_op_draw(chip8, &nib);
         break;
 
     case 0xE:
+        switch (nib.kk)
+        {
+        case 0x9E:
+            if (nib.x >= 0 && nib.x < 16)//проверяем правильная ли кнопка
+            {
+                if (chip8->keypad[chip8->V[nib.x]])//если кнопка под номером V[x] нажата,
+                    chip8->pc += 2; //то пропуск
+            }
             break;
+
+        case 0xA1:
+            if (nib.x >= 0 && nib.x < 16)//проверяем правильная ли кнопка
+            {
+                if (!chip8->keypad[chip8->V[nib.x]])//если кнопка под номером V[x] не нажата,
+                    chip8->pc += 2;//то пропускаем
+            }
+            break;
+
+        default:
+            break;
+        }
+        break;
+        
     case 0xF:
         break;
     default:

@@ -29,13 +29,13 @@ typedef struct {
 
 typedef struct decode_nibble
 {
-    uint8_t op;
-    uint8_t x;
-    uint8_t y;
-    uint8_t n;
-    uint8_t kk;
-    uint16_t nnn;
-} decode_nibble;
+    uint8_t op;     //1 бит   
+    uint8_t x;      //2 бит
+    uint8_t y;      //3 бит
+    uint8_t n;      //4 бит
+    uint8_t kk;     //последние 2 бита
+    uint16_t nnn;   // последние3 бита 
+} decode_nibble;        
 
 //Шрифт
 const uint8_t fontset[80] = {

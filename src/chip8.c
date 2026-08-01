@@ -126,6 +126,7 @@ bool chip8_cycle(Chip8 *chip8)
         case 0xEE:// 0x00EE - RET
             chip8->sp--;
             chip8->pc = chip8->stack[chip8->sp];
+            break;
         default:
             break;
         }

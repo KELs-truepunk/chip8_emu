@@ -56,7 +56,7 @@ int main(int argc, char **argv)
     bool running = true;
     SDL_Event event;
 
-    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
     if (!renderer)
     {
         fprintf(stderr, "Renderer Error: %s\n", SDL_GetError());

@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 
 // размер файла в байтах
 long get_file_size(FILE *file)
@@ -33,6 +34,13 @@ int fontset_to_mem(uint8_t *memory)
 
 void chip8_init(Chip8 *chip8)
 {
+    // зануляем массивы
+    memset(chip8->memory, 0, MEMORY_SIZE);
+    memset(chip8->V, 0, REGISTER_COUNT);
+    memset(chip8->gfx, 0, sizeof(chip8->gfx));
+    memset(chip8->stack, 0, sizeof(chip8->stack));
+    memset(chip8->keypad, 0, KEY_COUNT);
+
     chip8->pc = 0x200; // код программы начинается именно с 0x200, поэтому считчек не на ноль, до 0x200 находятся шрифты и тп.
     chip8->I = 0;
     chip8->sp = 0;
@@ -40,12 +48,6 @@ void chip8_init(Chip8 *chip8)
     chip8->sound_timer = 0;
 
     fontset_to_mem(chip8->memory); // копируем шрифт в начало памяти
-    // зануляем массивы
-    memset(chip8->memory, 0, MEMORY_SIZE);
-    memset(chip8->V, 0, REGISTER_COUNT);
-    memset(chip8->gfx, 0, sizeof(chip8->gfx));
-    memset(chip8->stack, 0, sizeof(chip8->stack));
-    memset(chip8->keypad, 0, KEY_COUNT);
 
     srand(time(NULL)); // получение сида для рандомного числа(используется в инструкции Cxkk)
 }
@@ -300,8 +302,8 @@ bool chip8_cycle(Chip8 *chip8)
     case 0xF:
         switch (nib.kk)
         {
-        case 0x07: // Fx07 - LD Vx, DT
-            chip8->V[nib.x] = chip8->delay_timer; //в V[x] помещаем делей-таймер
+        case 0x07:                                // Fx07 - LD Vx, DT
+            chip8->V[nib.x] = chip8->delay_timer; // в V[x] помещаем делей-таймер
             break;
 
         case 0x0A: // Fx0A - LD Vx, K
@@ -321,12 +323,12 @@ bool chip8_cycle(Chip8 *chip8)
                 chip8->pc -= 2;
             break;
 
-        case 0x15: // Fx15 - LD DT, Vx
-            chip8->delay_timer = chip8->V[nib.x]; //обновляем делей-таймер из регистра
+        case 0x15:                                // Fx15 - LD DT, Vx
+            chip8->delay_timer = chip8->V[nib.x]; // обновляем делей-таймер из регистра
             break;
 
-        case 0x18: // Fx18 - LD ST, Vx
-            chip8->sound_timer = chip8->V[nib.x]; //обновляем саунд-таймер из регистра
+        case 0x18:                                // Fx18 - LD ST, Vx
+            chip8->sound_timer = chip8->V[nib.x]; // обновляем саунд-таймер из регистра
             break;
 
         case 0x1E: // Fx1E - ADD I, Vx
@@ -338,7 +340,7 @@ bool chip8_cycle(Chip8 *chip8)
             break;
 
         case 0x33: //  Fx33 - LD B, Vx
-            //раскаладываем что лежит в регистре по 100, 10 и единицам
+            // раскаладываем что лежит в регистре по 100, 10 и единицам
             chip8->memory[chip8->I] = chip8->V[nib.x] / 100;
             chip8->memory[chip8->I + 1] = (chip8->V[nib.x] / 10) % 10;
             chip8->memory[chip8->I + 2] = chip8->V[nib.x] % 10;

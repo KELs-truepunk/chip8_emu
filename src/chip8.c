@@ -339,7 +339,7 @@ bool chip8_cycle(Chip8 *chip8)
             break;
 
         case 0x29: //  Fx29 - LD F, Vx
-            chip8->I = 0x050 + (chip8->V[nib.x * 5]);
+            chip8->I = 0x050 + (chip8->V[nib.x] * 5);
             break;
 
         case 0x33: //  Fx33 - LD B, Vx

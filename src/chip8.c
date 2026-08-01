@@ -118,15 +118,16 @@ bool chip8_cycle(Chip8 *chip8)
     switch (nib.op)
     {
     case 0x0:
-        if (opcode == 0x00E0) // 00E0 - CLS
+        switch (nib.kk)
         {
+        case 0xE0: // 00E0 - CLS
             memset(chip8->gfx, 0, sizeof(chip8->gfx));
-        }
-        else if (opcode == 0x00EE)
-        {
-            // RET: Возврат из подпрограммы
-            // chip8->sp--;
-            // chip8->pc = chip8->stack[chip8->sp];
+            break;
+        case 0xEE:// 0x00EE - RET
+            chip8->sp--;
+            chip8->pc = chip8->stack[chip8->sp];
+        default:
+            break;
         }
         break;
 
